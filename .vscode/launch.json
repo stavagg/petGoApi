@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Go Server",  // Название конфига (появится в меню F5)
+      "type": "go",               // Тип: go (от расширения)
+      "request": "launch",        // Запуск (не attach)
+      "mode": "auto",             // Авто-режим (для exec или debug)
+      "program": "${workspaceFolder}/cmd/api/main.go",  // Путь к main.go
+      "env": {                    // ENV-переменные (можно добавить свои, типа PORT)
+        "PORT": ":8080"
+      },
+      "args": [],                 // Аргументы командной строки (если нужны)
+      "showLog": true             // Показывать логи Delve в Debug Console
+    }
+  ]
+}
