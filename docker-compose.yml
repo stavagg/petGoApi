@@ -1,55 +1,47 @@
-
 services:
-  # Go API сервер
   api:
-    build: .                          # Собираем из Dockerfile в текущей папке
-    container_name: petgoapi_server   # Имя контейнера 
+    build: .
+    container_name: petgoapi_server
     ports:
-      - "8080:8080"                   # Проброс портов хост:контейнер
+      - "8080:8080"
     environment:
-      # Настройки приложения
       - PORT=:8080
-      # Настройки базы данных
-      - DB_HOST=db                    # Имя сервиса БД (!)
+      - DB_HOST=db
       - DB_USER=postgres
       - DB_PASS=password
       - DB_NAME=mydb
       - DB_PORT=5432
     depends_on:
-      - db                            # Запускать только после БД
-    restart: unless-stopped           # Автоперезапуск при падении
+      - db
+    restart: unless-stopped
     networks:
-      - petgoapi_network              # Общая сеть для связи контейнеров
+      - petgoapi_network
 
-  # PostgreSQL база данных
   db:
-    image: postgres:15-alpine         # Готовый образ PostgreSQL
-    container_name: petgoapi_db       # Имя контейнера БД
+    image: postgres:15-alpine
+    container_name: petgoapi_db
     environment:
-      # Настройки PostgreSQL
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: mydb
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     ports:
-      - "5432:5432"                   # Для подключения извне (опционально)
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Постоянное хранение данных
+      - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
       - petgoapi_network
-    healthcheck:                      # Проверка здоровья БД
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-# Именованные тома для данных
 volumes:
-  postgres_data:                      # Данные БД сохранятся при перезапуске
+  postgres_data:
     driver: local
 
-# Сеть для связи между контейнерами
 networks:
   petgoapi_network:
     driver: bridge

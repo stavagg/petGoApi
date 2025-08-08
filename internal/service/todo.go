@@ -7,17 +7,29 @@ import (
 	"github.com/stavagg/petGoApi/internal/repository"
 )
 
-type TodoService struct {
-	repo *repository.TodoRepository
+type TodoServiceInterface interface {
+	CreateTodo(req model.CreateTodoRequest) (*model.Todo, error)
+	GetAllTodos() ([]model.Todo, error)
+	GetTodoByID(id uint) (*model.Todo, error)
+	UpdateTodo(id uint, req model.UpdateTodoRequest) (*model.Todo, error)
+	DeleteTodo(id uint) error
+	GetTodosByCompleted(completed bool) ([]model.Todo, error)
+	GetStats() (map[string]interface{}, error)
+	ToggleTodo(id uint) (*model.Todo, error)
+	MarkAllCompleted() error
+	DeleteCompleted() error
 }
 
-func NewTodoService(repo *repository.TodoRepository) *TodoService {
+type TodoService struct {
+	repo repository.TodoRepositoryInterface
+}
+
+func NewTodoService(repo repository.TodoRepositoryInterface) *TodoService {
 	return &TodoService{repo: repo}
 }
 
-// CreateTodo создает новую задачу с валидацией
 func (s *TodoService) CreateTodo(req model.CreateTodoRequest) (*model.Todo, error) {
-	// Бизнес-валидация
+
 	if req.Title == "" {
 		return nil, errors.New("title is required")
 	}
@@ -30,14 +42,12 @@ func (s *TodoService) CreateTodo(req model.CreateTodoRequest) (*model.Todo, erro
 		return nil, errors.New("description too long (max 1000 characters)")
 	}
 
-	// Создаем модель из запроса
 	todo := &model.Todo{
 		Title:       req.Title,
 		Description: req.Description,
 		Completed:   false,
 	}
 
-	// Сохраняем через репозиторий
 	err := s.repo.Create(todo)
 	if err != nil {
 		return nil, errors.New("failed to create todo: " + err.Error())
@@ -46,7 +56,6 @@ func (s *TodoService) CreateTodo(req model.CreateTodoRequest) (*model.Todo, erro
 	return todo, nil
 }
 
-// GetAllTodos получает все задачи
 func (s *TodoService) GetAllTodos() ([]model.Todo, error) {
 	todos, err := s.repo.GetAll()
 	if err != nil {
@@ -55,7 +64,6 @@ func (s *TodoService) GetAllTodos() ([]model.Todo, error) {
 	return todos, nil
 }
 
-// GetTodoByID получает задачу по ID с валидацией
 func (s *TodoService) GetTodoByID(id uint) (*model.Todo, error) {
 	if id == 0 {
 		return nil, errors.New("invalid todo ID")
@@ -68,15 +76,13 @@ func (s *TodoService) GetTodoByID(id uint) (*model.Todo, error) {
 	return todo, nil
 }
 
-// UpdateTodo обновляет задачу с бизнес-логикой
 func (s *TodoService) UpdateTodo(id uint, req model.UpdateTodoRequest) (*model.Todo, error) {
-	// Проверяем существование задачи
+
 	todo, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, errors.New("todo not found")
 	}
 
-	// Валидация обновляемых полей
 	if req.Title != "" {
 		if len(req.Title) > 255 {
 			return nil, errors.New("title too long (max 255 characters)")
@@ -95,7 +101,6 @@ func (s *TodoService) UpdateTodo(id uint, req model.UpdateTodoRequest) (*model.T
 		todo.Completed = *req.Completed
 	}
 
-	// Обновляем через репозиторий
 	err = s.repo.Update(todo)
 	if err != nil {
 		return nil, errors.New("failed to update todo: " + err.Error())
@@ -104,19 +109,16 @@ func (s *TodoService) UpdateTodo(id uint, req model.UpdateTodoRequest) (*model.T
 	return todo, nil
 }
 
-// DeleteTodo удаляет задачу с проверками
 func (s *TodoService) DeleteTodo(id uint) error {
 	if id == 0 {
 		return errors.New("invalid todo ID")
 	}
 
-	// Проверяем существование задачи
 	_, err := s.repo.GetByID(id)
 	if err != nil {
 		return errors.New("todo not found")
 	}
 
-	// Удаляем
 	err = s.repo.Delete(id)
 	if err != nil {
 		return errors.New("failed to delete todo: " + err.Error())
@@ -125,7 +127,6 @@ func (s *TodoService) DeleteTodo(id uint) error {
 	return nil
 }
 
-// GetTodosByCompleted получает задачи по статусу выполнения
 func (s *TodoService) GetTodosByCompleted(completed bool) ([]model.Todo, error) {
 	todos, err := s.repo.GetByCompleted(completed)
 	if err != nil {
@@ -134,7 +135,6 @@ func (s *TodoService) GetTodosByCompleted(completed bool) ([]model.Todo, error) 
 	return todos, nil
 }
 
-// GetStats возвращает статистику задач
 func (s *TodoService) GetStats() (map[string]interface{}, error) {
 	allTodos, err := s.repo.GetAll()
 	if err != nil {
@@ -167,14 +167,12 @@ func (s *TodoService) GetStats() (map[string]interface{}, error) {
 	return stats, nil
 }
 
-// ToggleTodo переключает статус выполнения задачи
 func (s *TodoService) ToggleTodo(id uint) (*model.Todo, error) {
 	todo, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, errors.New("todo not found")
 	}
 
-	// Переключаем статус
 	todo.Completed = !todo.Completed
 
 	err = s.repo.Update(todo)
@@ -185,7 +183,6 @@ func (s *TodoService) ToggleTodo(id uint) (*model.Todo, error) {
 	return todo, nil
 }
 
-// MarkAllCompleted помечает все задачи как выполненные
 func (s *TodoService) MarkAllCompleted() error {
 	todos, err := s.repo.GetByCompleted(false)
 	if err != nil {
@@ -203,7 +200,6 @@ func (s *TodoService) MarkAllCompleted() error {
 	return nil
 }
 
-// DeleteCompleted удаляет все выполненные задачи
 func (s *TodoService) DeleteCompleted() error {
 	completedTodos, err := s.repo.GetByCompleted(true)
 	if err != nil {

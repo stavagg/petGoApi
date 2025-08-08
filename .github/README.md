@@ -1,11 +1,12 @@
 # PetGoApi - Todo REST API
 
 [![CI/CD Pipeline](https://github.com/stavagg/petGoApi/actions/workflows/ci.yml/badge.svg)](https://github.com/stavagg/petGoApi/actions/workflows/ci.yml)
+[![PR Check](https://github.com/stavagg/petGoApi/actions/workflows/pr-check.yml/badge.svg)](https://github.com/stavagg/petGoApi/actions/workflows/pr-check.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/stavagg/petGoApi)](https://goreportcard.com/report/github.com/stavagg/petGoApi)
 [![Coverage](https://codecov.io/gh/stavagg/petGoApi/branch/main/graph/badge.svg)](https://codecov.io/gh/stavagg/petGoApi)
+[![Docker Pulls](https://img.shields.io/docker/pulls/stavagg/petgoapi)](https://hub.docker.com/r/stavagg/petgoapi)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/go-1.23-blue.svg)](https://golang.org)
-[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
 🚀 **REST API** для управления Todo задачами, построенный на Go с применением принципов Clean Architecture и современных практик разработки.
 

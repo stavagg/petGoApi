@@ -10,14 +10,13 @@ import (
 )
 
 type TodoHandler struct {
-	service *service.TodoService
+	service service.TodoServiceInterface
 }
 
-func NewTodoHandler(service *service.TodoService) *TodoHandler {
+func NewTodoHandler(service service.TodoServiceInterface) *TodoHandler {
 	return &TodoHandler{service: service}
 }
 
-// CreateTodo создает новую задачу
 func (h *TodoHandler) CreateTodo(c *gin.Context) {
 	var req model.CreateTodoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -37,7 +36,6 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 	})
 }
 
-// GetAllTodos получает все задачи с фильтрацией
 func (h *TodoHandler) GetAllTodos(c *gin.Context) {
 	completed := c.Query("completed")
 
@@ -67,7 +65,6 @@ func (h *TodoHandler) GetAllTodos(c *gin.Context) {
 	})
 }
 
-// GetTodoByID получает задачу по ID
 func (h *TodoHandler) GetTodoByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -87,7 +84,6 @@ func (h *TodoHandler) GetTodoByID(c *gin.Context) {
 	})
 }
 
-// UpdateTodo обновляет задачу
 func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -113,7 +109,6 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 	})
 }
 
-// DeleteTodo удаляет задачу
 func (h *TodoHandler) DeleteTodo(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -132,7 +127,6 @@ func (h *TodoHandler) DeleteTodo(c *gin.Context) {
 	})
 }
 
-// GetStats возвращает статистику
 func (h *TodoHandler) GetStats(c *gin.Context) {
 	stats, err := h.service.GetStats()
 	if err != nil {
@@ -146,7 +140,6 @@ func (h *TodoHandler) GetStats(c *gin.Context) {
 	})
 }
 
-// ToggleTodo переключает статус задачи
 func (h *TodoHandler) ToggleTodo(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
