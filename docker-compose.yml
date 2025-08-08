@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Go API сервер
+  api:
+    build: .                          # Собираем из Dockerfile в текущей папке
+    container_name: petgoapi_server   # Имя контейнера 
+    ports:
+      - "8080:8080"                   # Проброс портов хост:контейнер
+    environment:
+      # Настройки приложения
+      - PORT=:8080
+      # Настройки базы данных
+      - DB_HOST=db                    # Имя сервиса БД (!)
+      - DB_USER=postgres
+      - DB_PASS=password
+      - DB_NAME=mydb
+      - DB_PORT=5432
+    depends_on:
+      - db                            # Запускать только после БД
+    restart: unless-stopped           # Автоперезапуск при падении
+    networks:
+      - petgoapi_network              # Общая сеть для связи контейнеров
+
+  # PostgreSQL база данных
+  db:
+    image: postgres:15-alpine         # Готовый образ PostgreSQL
+    container_name: petgoapi_db       # Имя контейнера БД
+    environment:
+      # Настройки PostgreSQL
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"                   # Для подключения извне (опционально)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Постоянное хранение данных
+    restart: unless-stopped
+    networks:
+      - petgoapi_network
+    healthcheck:                      # Проверка здоровья БД
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Именованные тома для данных
+volumes:
+  postgres_data:                      # Данные БД сохранятся при перезапуске
+    driver: local
+
+# Сеть для связи между контейнерами
+networks:
+  petgoapi_network:
+    driver: bridge
