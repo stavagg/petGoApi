@@ -1,0 +1,57 @@
+name: 🔍 Pull Request Check
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  pr-validation:
+    name: 📋 PR Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 🐹 Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+    
+    - name: 🧪 Run tests
+      run: go test ./... -v
+    
+    - name: 🎯 Check code formatting
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "❌ Code is not properly formatted. Please run:"
+          echo "gofmt -s -w ."
+          gofmt -s -l .
+          exit 1
+        fi
+        echo "✅ Code is properly formatted"
+    
+    - name: 🔍 Vet code
+      run: go vet ./...
+    
+    - name: 📊 Coverage check
+      run: |
+        go test ./... -coverprofile=coverage.out
+        COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
+        echo "**Coverage:** $COVERAGE%" >> $GITHUB_STEP_SUMMARY
+        
+        if (( $(echo "$COVERAGE < 20" | bc -l) )); then
+          echo "❌ Coverage dropped below 20%"
+          exit 1
+        fi
+
+    - name: 💬 Comment PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '🤖 **Automated PR Check**\n\n✅ All checks passed!\n✅ Tests are passing\n✅ Code is properly formatted\n✅ Coverage meets requirements\n\nReady for review! 🚀'
+          })
